@@ -572,6 +572,7 @@ h1 .not-word.pulse-red { animation: notPulse 1.2s ease; }
     transition: opacity 2s ease-in-out;
     will-change: transform;
     transform-origin: center center;
+    pointer-events: none;
 }
 
 #cutscene-gif-wrapper.reveal {

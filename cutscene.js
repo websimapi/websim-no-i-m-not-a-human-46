@@ -154,6 +154,15 @@ async function transitionToScene(sceneIndex) {
     }
     
     const bgImg = sceneAssets.img, gifImg = sceneAssets.gif;
+    // Ensure the GIF animates by placing it in the DOM invisibly
+    if (gifWrapper && !gifWrapper.contains(gifImg)) {
+      gifImg.style.position = 'absolute';
+      gifImg.style.left = '-9999px';
+      gifImg.style.top = '0';
+      gifImg.style.width = '1px';
+      gifImg.style.height = '1px';
+      gifWrapper.appendChild(gifImg);
+    }
     posterizeInstance = applyPosterizeToGif(canvas, gifImg, bgImg, 5.0, 0.12);
     if (posterizeInstance) posterizeInstance.setFogCoverage(0.45);
     if (scene.animationClass) canvas.classList.add(scene.animationClass);
