@@ -20,7 +20,7 @@ void main(){
   vec2 duv=v+(mot-0.5)*0.1*skyMask;
   vec4 g=texture2D(texGif, duv);
   vec3 bg=texture2D(texBg, duv).rgb;
-  vec3 src=mix(bg, g.rgb, g.a);
+  vec3 src = g.rgb; // Only use gif, ignore background completely
   float dynLv=lv+mot.x*3.0*skyMask;
   vec3 col=pow(src, vec3(1.0/2.2));
   vec3 post=posterize(col, dynLv); post=pow(post, vec3(2.2));
