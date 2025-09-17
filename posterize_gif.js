@@ -62,11 +62,13 @@ void main(){
   const uTexel=gl.getUniformLocation(prog,'texel'), uLv=gl.getUniformLocation(prog,'lv');
   const uEm=gl.getUniformLocation(prog,'em'), uTm=gl.getUniformLocation(prog,'tm');
   const uFogC=gl.getUniformLocation(prog,'fogC'); const t0=performance.now();
+  let fogCoverage = 0.45;
   function draw(){
     const t=(performance.now()-t0)/1000;
     gl.viewport(0,0,canvas.width,canvas.height); gl.useProgram(prog);
     gl.uniform2f(uTexel,1.0/gifImg.naturalWidth,1.0/gifImg.naturalHeight);
     gl.uniform1f(uLv,levels); gl.uniform1f(uEm,edgeMix); gl.uniform1f(uTm,t);
+    gl.uniform1f(uFogC, fogCoverage);
     gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
   }
   function loop(){
@@ -77,7 +79,6 @@ void main(){
   resize(); window.addEventListener('resize', resize, { passive:true }); loop();
   return {
     cleanup: ()=>{ if(raf) cancelAnimationFrame(raf); window.removeEventListener('resize', resize); },
-    setFogCoverage: (v)=>{ gl.useProgram(prog); gl.uniform1f(uFogC, v); }
+    setFogCoverage: (v)=>{ fogCoverage = v; gl.useProgram(prog); gl.uniform1f(uFogC, fogCoverage); }
   };
 }
-

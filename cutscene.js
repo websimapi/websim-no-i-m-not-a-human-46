@@ -155,7 +155,8 @@ async function transitionToScene(sceneIndex) {
     
     const bgImg = sceneAssets.img, gifImg = sceneAssets.gif;
     posterizeInstance = applyPosterizeToGif(canvas, gifImg, bgImg, 5.0, 0.12);
-    if (scene.animationClass) document.getElementById('cutscene-canvas-wrapper')?.classList.add(scene.animationClass);
+    if (posterizeInstance) posterizeInstance.setFogCoverage(0.45);
+    if (scene.animationClass) canvas.classList.add(scene.animationClass);
     
     requestAnimationFrame(() => {
         canvas.classList.add('reveal');
