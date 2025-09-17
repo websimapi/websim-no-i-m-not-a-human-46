@@ -395,6 +395,11 @@ footer {
   to { transform: scale(1.15); }
 }
 
+#cutscene canvas.gate-zoom {
+  animation: gateZoom 18s ease-in-out;
+  animation-fill-mode: forwards;
+}
+
 @keyframes driveZoom {
   0% { transform: scale(1); }
   55% { transform: scale(1.1); }

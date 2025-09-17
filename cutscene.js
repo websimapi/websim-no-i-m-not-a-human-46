@@ -154,13 +154,16 @@ async function transitionToScene(sceneIndex) {
     }
     
     const bgImg = sceneAssets.img, gifImg = sceneAssets.gif;
-    // Ensure the GIF animates by placing it in the DOM invisibly
+    // Ensure the GIF animates by placing it in the DOM properly sized but invisible
     if (gifWrapper && !gifWrapper.contains(gifImg)) {
       gifImg.style.position = 'absolute';
-      gifImg.style.left = '-9999px';
+      gifImg.style.left = '0';
       gifImg.style.top = '0';
-      gifImg.style.width = '1px';
-      gifImg.style.height = '1px';
+      gifImg.style.width = '100vw';
+      gifImg.style.height = '100dvh';
+      gifImg.style.objectFit = 'cover';
+      gifImg.style.opacity = '0';
+      gifImg.style.pointerEvents = 'none';
       gifWrapper.appendChild(gifImg);
     }
     posterizeInstance = applyPosterizeToGif(canvas, gifImg, bgImg, 5.0, 0.12);
