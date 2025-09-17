@@ -1,4 +1,5 @@
 import { applyPosterizeToImage } from './posterize.js';
+import { applyPosterizeToGif } from './posterize_gif.js';
 import { audioCtx, getBackgroundAudio } from './audio.js';
 import { animateBirds, stopBirds } from './birds.js';
 import { FogFX } from './fog.js';
@@ -146,20 +147,18 @@ async function transitionToScene(sceneIndex) {
   }
   
   if (scene.gif && sceneAssets.gif) {
-    // --- GIF Scene Logic ---
-    canvas.style.display = 'none';
+    // --- GIF Scene Logic with shader ---
+    canvas.style.display = 'block';
     if (currentSceneIndex === 2 && fogCanvas) {
       fogCanvas.style.display = 'block'; scene3Fog = new FogFX('#cutscene-fog'); scene3Fog.setOpacity(0.65); scene3Fog.start();
     }
     
-    const bgImg = sceneAssets.img.cloneNode();
-    const gifImg = sceneAssets.gif.cloneNode();
-    gifWrapper.append(bgImg, gifImg);
+    const bgImg = sceneAssets.img, gifImg = sceneAssets.gif;
+    posterizeInstance = applyPosterizeToGif(canvas, gifImg, bgImg, 5.0, 0.12);
+    if (scene.animationClass) document.getElementById('cutscene-canvas-wrapper')?.classList.add(scene.animationClass);
     
-    if (scene.animationClass) gifWrapper.classList.add(scene.animationClass);
-
     requestAnimationFrame(() => {
-        gifWrapper.classList.add('reveal');
+        canvas.classList.add('reveal');
         if (scene.onStart) scene.onStart(csElement);
         if (currentSceneIndex !== 2 && fogCanvas) { fogCanvas.style.display = 'none'; }
 
