@@ -1,4 +1,4 @@
-export function applyPosterizeToGif(canvas, gifImg, bgImg, levels = 5.0, edgeMix = 0.12) {
+export function applyPosterizeToGif(canvas, gifImg, levels = 5.0, edgeMix = 0.12) {
   const gl = canvas.getContext('webgl'); if (!gl) return null;
   const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
   let raf = 0;
@@ -6,7 +6,7 @@ export function applyPosterizeToGif(canvas, gifImg, bgImg, levels = 5.0, edgeMix
     if(canvas.width!==w||canvas.height!==h){ canvas.width=w; canvas.height=h; canvas.style.width=innerWidth+'px'; canvas.style.height=innerHeight+'px'; } };
   const vs=`attribute vec2 p;attribute vec2 u;varying vec2 v;void main(){v=u;gl_Position=vec4(p,0.0,1.0);}`;
   const fs=`precision highp float;varying vec2 v;
-uniform sampler2D texGif, texBg; uniform vec2 texel; uniform float lv, em, tm, fogC;
+uniform sampler2D texGif; uniform vec2 texel; uniform float lv, em, tm, fogC;
 float luma(vec3 c){return dot(c,vec3(0.299,0.587,0.114));}
 vec3 posterize(vec3 c,float L){return floor(c*L)/L;}
 float hash(vec2 p){return fract(sin(dot(p,vec2(12.99,78.23)))*43758.5453);}
@@ -19,8 +19,7 @@ void main(){
   vec2 mot=vec2(fbm(v*2.5+tm*0.08), fbm(v*2.5-tm*0.08));
   vec2 duv=v+(mot-0.5)*0.1*skyMask;
   vec4 g=texture2D(texGif, duv);
-  vec3 bg=texture2D(texBg, duv).rgb;
-  vec3 src = g.rgb; // Only use gif, ignore background completely
+  vec3 src = g.rgb;
   float dynLv=lv+mot.x*3.0*skyMask;
   vec3 col=pow(src, vec3(1.0/2.2));
   vec3 post=posterize(col, dynLv); post=pow(post, vec3(2.2));
@@ -50,13 +49,7 @@ void main(){
   const texGif=gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, texGif);
   gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
   gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
-  const texBg=gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, texBg);
-  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
   gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-  gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, texBg);
-  gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,bgImg);
-  gl.uniform1i(gl.getUniformLocation(prog,'texBg'),1);
   gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, texGif);
   gl.uniform1i(gl.getUniformLocation(prog,'texGif'),0);
   const uTexel=gl.getUniformLocation(prog,'texel'), uLv=gl.getUniformLocation(prog,'lv');
@@ -82,3 +75,4 @@ void main(){
     setFogCoverage: (v)=>{ fogCoverage = v; gl.useProgram(prog); gl.uniform1f(uFogC, fogCoverage); }
   };
 }
+

@@ -56,8 +56,7 @@ const scenes = [
     }
   },
   { // Scene 3: The Green Gate (Animated GIF)
-    image: 'cutscene_gate.png',
-    gif: 'animated.gif',
+    image: 'animated.gif',
     duration: 18000, // Longer, more pensive scene
     animationClass: 'gate-zoom',
     onStart: () => {
@@ -88,7 +87,6 @@ async function transitionToScene(sceneIndex) {
   isTransitioning = true;
 
   const canvas = document.getElementById('cutscene-canvas');
-  const gifWrapper = document.getElementById('cutscene-gif-wrapper');
   csElement.removeEventListener('click', skipCurrentScene);
   if (autoSkipTimeout) clearTimeout(autoSkipTimeout);
   
@@ -107,7 +105,6 @@ async function transitionToScene(sceneIndex) {
   
   // Fade out current scene. For scene 2, zoom continues during this fade.
   canvas.className = ''; // Clear all classes to trigger fade-out
-  if (gifWrapper) gifWrapper.className = '';
 
   await new Promise(r => setTimeout(r, 2000));
   
@@ -122,7 +119,6 @@ async function transitionToScene(sceneIndex) {
     }
   }
 
-  if (gifWrapper) gifWrapper.innerHTML = '';
   const fogCanvas = document.getElementById('cutscene-fog');
   if (scene3Fog) { scene3Fog.stop(); scene3Fog = null; if (fogCanvas) fogCanvas.style.display = 'none'; }
 
@@ -138,91 +134,48 @@ async function transitionToScene(sceneIndex) {
   
   currentSceneIndex = sceneIndex;
   const scene = scenes[currentSceneIndex];
-  const sceneAssets = preloadedAssets[currentSceneIndex];
+  const sceneImage = preloadedAssets[currentSceneIndex];
 
-  if (!sceneAssets || !sceneAssets.img) {
+  if (!sceneImage) {
       console.error(`Scene ${currentSceneIndex + 1} assets not preloaded.`);
       isTransitioning = false;
       return;
   }
   
-  if (scene.gif && sceneAssets.gif) {
-    // --- GIF Scene Logic with shader ---
-    canvas.style.display = 'block';
+  canvas.style.display = 'block';
+
+  if (scene.image.endsWith('.gif')) {
     if (currentSceneIndex === 2 && fogCanvas) {
       fogCanvas.style.display = 'block'; scene3Fog = new FogFX('#cutscene-fog'); scene3Fog.setOpacity(0.65); scene3Fog.start();
     }
-    
-    const bgImg = sceneAssets.img, gifImg = sceneAssets.gif;
-    // Ensure the GIF animates by placing it in the DOM properly sized but invisible
-    if (gifWrapper && !gifWrapper.contains(gifImg)) {
-      gifImg.style.position = 'absolute';
-      gifImg.style.left = '0';
-      gifImg.style.top = '0';
-      gifImg.style.width = '100vw';
-      gifImg.style.height = '100dvh';
-      gifImg.style.objectFit = 'cover';
-      gifImg.style.opacity = '0';
-      gifImg.style.pointerEvents = 'none';
-      gifWrapper.appendChild(gifImg);
-    }
-    posterizeInstance = applyPosterizeToGif(canvas, gifImg, bgImg, 5.0, 0.12);
-    if (posterizeInstance) posterizeInstance.setFogCoverage(0.45);
-    if (scene.animationClass) canvas.classList.add(scene.animationClass);
-    
-    requestAnimationFrame(() => {
-        canvas.classList.add('reveal');
-        if (scene.onStart) scene.onStart(csElement);
-        if (currentSceneIndex !== 2 && fogCanvas) { fogCanvas.style.display = 'none'; }
-
-        if (currentSceneIndex < scenes.length - 1) {
-            autoSkipTimeout = setTimeout(skipCurrentScene, scene.duration);
-            csElement.addEventListener('click', skipCurrentScene, { once: true });
-        }
-        isTransitioning = false;
-    });
-
+    posterizeInstance = applyPosterizeToGif(canvas, sceneImage, 5.0, 0.12);
   } else {
-    // --- Canvas Scene Logic ---
-    canvas.style.display = 'block';
-    posterizeInstance = applyPosterizeToImage(canvas, sceneAssets.img, 5.0, 0.12);
-
-    requestAnimationFrame(() => {
-        canvas.classList.add('reveal');
-        if (scene.fadeInClass) canvas.classList.add(scene.fadeInClass);
-        if (scene.animationClass) canvas.classList.add(scene.animationClass);
-        
-        if (scene.onStart) scene.onStart(csElement, canvas);
-
-        if (currentSceneIndex < scenes.length - 1) {
-            autoSkipTimeout = setTimeout(skipCurrentScene, scene.duration);
-            csElement.addEventListener('click', skipCurrentScene, { once: true });
-        }
-        isTransitioning = false;
-    });
+    posterizeInstance = applyPosterizeToImage(canvas, sceneImage, 5.0, 0.12);
   }
+
+  requestAnimationFrame(() => {
+      canvas.classList.add('reveal');
+      if (scene.fadeInClass) canvas.classList.add(scene.fadeInClass);
+      if (scene.animationClass) canvas.classList.add(scene.animationClass);
+      
+      if (scene.onStart) scene.onStart(csElement, canvas);
+
+      if (currentSceneIndex < scenes.length - 1) {
+          autoSkipTimeout = setTimeout(skipCurrentScene, scene.duration);
+          csElement.addEventListener('click', skipCurrentScene, { once: true });
+      }
+      isTransitioning = false;
+  });
 }
 
 async function preloadCutsceneAssets() {
   const promises = scenes.map(scene => {
-    const imagePromise = new Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
       const img = new Image();
       img.onload = () => resolve(img);
       img.onerror = (err) => reject(`Failed to load ${scene.image}: ${err}`);
       img.src = scene.image;
     });
-
-    if (scene.gif) {
-      const gifPromise = new Promise((resolve, reject) => {
-        const gif = new Image();
-        gif.onload = () => resolve(gif);
-        gif.onerror = (err) => reject(`Failed to load ${scene.gif}: ${err}`);
-        gif.src = scene.gif;
-      });
-      return Promise.all([imagePromise, gifPromise]).then(([img, gif]) => ({ img, gif }));
-    }
-
-    return imagePromise.then(img => ({ img }));
   });
   return Promise.all(promises);
 }

@@ -4,6 +4,8 @@ export function applyPosterizeToImage(canvas, image, levels = 5.0, edgeMix = 0.1
   const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
   let animationFrameId = null;
 
+  const isGif = image.src.endsWith('.gif');
+
   const resize = () => {
     const w = Math.floor(innerWidth * dpr), h = Math.floor(innerHeight * dpr);
     if (canvas.width !== w || canvas.height !== h) {
@@ -139,6 +141,10 @@ export function applyPosterizeToImage(canvas, image, levels = 5.0, edgeMix = 0.1
 
   function draw() {
     const time = (performance.now() - startTime) / 1000.0;
+    if (isGif) {
+        gl.bindTexture(gl.TEXTURE_2D, tex);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+    }
     gl.viewport(0, 0, canvas.width, canvas.height);
     gl.useProgram(prog);
     gl.uniform2f(uTexel, 1.0 / image.naturalWidth, 1.0 / image.naturalHeight);
